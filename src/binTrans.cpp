@@ -48,8 +48,8 @@ struct bpf_insn StringToInsn(const std::string &insn_string) {
 void dissassemble(uint64_t pc, char * buf, int buflen, u32 inst) {
   static int offset = 0;
   disasm_inst(buf, buflen, rv32, pc + offset, inst);
-  INSN(buf);
-  // INSN_ADDR(pc + offset, buf)
+  // INSN(buf);
+  INSN_ADDR(pc + offset, buf);
   offset += 4;
 }
 

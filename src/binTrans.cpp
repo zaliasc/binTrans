@@ -45,7 +45,7 @@ struct bpf_insn StringToInsn(const std::string &insn_string) {
   return insn;
 }
 
-void dissassemble(uint64_t pc, char * buf, int buflen, u32 inst) {
+void dissassemble(uint64_t pc, char *buf, int buflen, u32 inst) {
   static int offset = 0;
   disasm_inst(buf, buflen, rv32, pc + offset, inst);
   // INSN(buf);
@@ -54,14 +54,20 @@ void dissassemble(uint64_t pc, char * buf, int buflen, u32 inst) {
 }
 
 void riscv_insn_dump(struct rv_jit_context *ctx) {
-  int riscv_len = ctx->ninsns;
-  int *offset = ctx->offset;
+  const struct bpf_prog *prog = ctx->prog;
 
+  int *offset = ctx->offset;
   char buf[128] = {0};
-  for (int i = 0; i < riscv_len / 2; i++) {
-    u32 inst = ((u32)ctx->insns[2 * i + 1] << 16) + ((u32)ctx->insns[2 * i]);
-    dissassemble(0, buf, sizeof(buf), inst);
-  }
+
+  int insn_index = 0;
+  for (int i = 0; i < prog->len; i++) {
+    int t = ctx->offset[i] / 2;
+    LOG("code " + to_string(i));
+    while (insn_index < t) {
+      u32 inst = ((u32)ctx->insns[2 * insn_index + 1] << 16) + ((u32)ctx->insns[2 * insn_index]);
+      dissassemble(0, buf, sizeof(buf), inst);
+      ++ insn_index;
+    }
 }
 
 }  // namespace utils
@@ -113,8 +119,7 @@ int main() {
   _bpf_prog.len = idx;
   _bpf_prog.insnsi = ins_vec;
 
-  auto my_logger =
-      spdlog::basic_logger_mt("mylogger", "logs/riscvcode", true);
+  auto my_logger = spdlog::basic_logger_mt("mylogger", "logs/riscvcode", true);
   spdlog::set_default_logger(my_logger);
   my_logger->set_pattern("%v");
 

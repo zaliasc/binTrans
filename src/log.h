@@ -4,6 +4,8 @@
 
 #define SPDLOG_NAME "mylogger"
 
+#define LOG(string) spdlog::info(fmt::format("{0}",string))
+
 // #define INSN(inst, buf) spdlog::info(fmt::format("{0:08x}   {1}", inst, buf))
 // #define INSN(buf) spdlog::info(fmt::format("{0}", buf))
 #define INSN_ADDR(inst, buf) spdlog::info(fmt::format("{0:08x} :  {1}", inst, buf))

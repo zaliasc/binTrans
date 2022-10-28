@@ -2,3 +2,6 @@ temp
 .vscode
 *.out
 src/logs/*
+bin/*
+build/*
+*/build/*

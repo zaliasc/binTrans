@@ -1,7 +1,9 @@
 #include "binTrans.h"
 
 #include "log.h"
-#include "riscv-disas.h"
+extern "C" {
+    #include "riscv-disas.h"
+}
 
 namespace utils {
 
@@ -64,10 +66,12 @@ void riscv_insn_dump(struct rv_jit_context *ctx) {
     int t = ctx->offset[i] / 2;
     LOG("code " + to_string(i));
     while (insn_index < t) {
-      u32 inst = ((u32)ctx->insns[2 * insn_index + 1] << 16) + ((u32)ctx->insns[2 * insn_index]);
+      u32 inst = ((u32)ctx->insns[2 * insn_index + 1] << 16) +
+                 ((u32)ctx->insns[2 * insn_index]);
       dissassemble(0, buf, sizeof(buf), inst);
-      ++ insn_index;
+      ++insn_index;
     }
+  }
 }
 
 }  // namespace utils
@@ -120,6 +124,7 @@ int main() {
   _bpf_prog.insnsi = ins_vec;
 
   auto my_logger = spdlog::basic_logger_mt("mylogger", "logs/riscvcode", true);
+  
   spdlog::set_default_logger(my_logger);
   my_logger->set_pattern("%v");
 

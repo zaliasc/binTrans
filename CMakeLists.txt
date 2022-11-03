@@ -7,7 +7,7 @@ SET(CMAKE_CXX_COMPILER "g++")
 set( CMAKE_BUILD_TYPE Debug )
 
 # 设置编译选项
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -g" )
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O0 -g -ggdb" )
 
 if(NOT TARGET spdlog)
     # Stand-alone build

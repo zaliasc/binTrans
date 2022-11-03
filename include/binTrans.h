@@ -30,7 +30,7 @@ void riscv_insn_dump(struct rv_jit_context *ctx);
 
 namespace binTrans {
 
-const std::string ebpf_resource_path = "/home/zzc/project/binTrans/ebpf_resource/";
+const std::string ebpf_resource_path = "../ebpf_resource/";
 const std::string prog_name = "xdp1_kern.o";
 const std::string prog_path = ebpf_resource_path + prog_name;
 const std::string bytecode_path = ebpf_resource_path + "bytecode_raw";

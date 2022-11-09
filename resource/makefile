@@ -18,7 +18,7 @@ byte:
 	# llvm-objdump-10 -S ${XDP_TARGETS}_1.o > bytecode_1.text
 	# llvm-objdump-10 -d ${XDP_TARGETS}.o > bytecode.text
 
-LINUX_PATH ?= /home/zzc/project/linux-5.4.217
+LINUX_PATH ?= /space1/zzc_data/linux-5.4
 LINUX_TOOLS_PATH = $(LINUX_PATH)/tools
 LINUX_LIB_PATH = $(LINUX_TOOLS_PATH)/lib
 LIBBPF_PATH = $(LINUX_LIB_PATH)/bpf

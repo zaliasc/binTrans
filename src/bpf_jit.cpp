@@ -1,7 +1,8 @@
 #include "bpf_jit.h"
-#include "log.h"
 
 #include <errno.h>
+
+#include "log.h"
 
 /**
  * round_up - round up to next specified power of 2
@@ -794,7 +795,7 @@ static int emit_bpf_tail_call(int insn, struct rv_jit_context *ctx) {
   emit(rv_slli(RV_REG_T0, lo(idx_reg), 2), ctx);
   emit(rv_add(RV_REG_T0, RV_REG_T0, lo(arr_reg)), ctx);
 
-    // NOTE fix bpf+array miss
+  // NOTE fix bpf+array miss
   off = 1;
   // off = offsetof(struct bpf_array, ptrs);
   if (is_12b_check(off, insn)) return -1;
@@ -806,7 +807,7 @@ static int emit_bpf_tail_call(int insn, struct rv_jit_context *ctx) {
    * tcc = temp_tcc;
    * goto *(prog->bpf_func + 4);
    */
-    // NOTE fix bpf+array miss
+  // NOTE fix bpf+array miss
   off = 1;
   // off = offsetof(struct bpf_prog, bpf_func);
   if (is_12b_check(off, insn)) return -1;
@@ -1112,8 +1113,8 @@ int bpf_jit_emit_insn(const struct bpf_insn *insn, struct rv_jit_context *ctx,
       int ret;
       u64 addr;
       // FIXME fix call addr
-      // ret = bpf_jit_get_func_addr(ctx->prog, insn, extra_pass, &addr, &fixed);
-      // if (ret < 0) return ret;
+      // ret = bpf_jit_get_func_addr(ctx->prog, insn, extra_pass, &addr,
+      // &fixed); if (ret < 0) return ret;
       emit_call(fixed, addr, ctx);
       break;
     }

@@ -5,3 +5,6 @@ src/logs/*
 bin/*
 build/*
 */build/*
+.history
+compile_commands.json
+.clangd

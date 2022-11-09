@@ -1,8 +1,10 @@
 #include "binTrans.h"
 
 #include "log.h"
+#include <spdlog/common.h>
+#include <spdlog/spdlog.h>
 extern "C" {
-    #include "riscv-disas.h"
+#include "riscv-disas.h"
 }
 
 namespace utils {
@@ -53,6 +55,7 @@ void dissassemble(uint64_t pc, char *buf, int buflen, u32 inst) {
   // INSN(buf);
   INSN_ADDR(pc + offset, buf);
   offset += 4;
+  // offset += 1;
 }
 
 void riscv_insn_dump(struct rv_jit_context *ctx) {
@@ -65,6 +68,7 @@ void riscv_insn_dump(struct rv_jit_context *ctx) {
   for (int i = 0; i < prog->len; i++) {
     int t = ctx->offset[i] / 2;
     LOG("code " + to_string(i));
+
     while (insn_index < t) {
       u32 inst = ((u32)ctx->insns[2 * insn_index + 1] << 16) +
                  ((u32)ctx->insns[2 * insn_index]);
@@ -76,8 +80,9 @@ void riscv_insn_dump(struct rv_jit_context *ctx) {
 
 }  // namespace utils
 
-static int build_body(struct rv_jit_context *ctx, bool extra_pass,
-                      int *offset) {
+// get offset at first traverse, prepared for jump inst.
+static int build_offset(struct rv_jit_context *ctx, bool extra_pass,
+                        int *offset) {
   const struct bpf_prog *prog = ctx->prog;
   int i;
 
@@ -94,6 +99,24 @@ static int build_body(struct rv_jit_context *ctx, bool extra_pass,
   return 0;
 }
 
+static int build_body(struct rv_jit_context *ctx, bool extra_pass,
+                      int *offset) {
+  const struct bpf_prog *prog = ctx->prog;
+  int i;
+
+  for (i = 0; i < prog->len; i++) {
+    const struct bpf_insn *insn = &prog->insnsi[i];
+    int ret;
+
+     ret = bpf_jit_emit_insn(insn, ctx, extra_pass);
+    /* BPF_LD | BPF_IMM | BPF_DW: skip the next instruction. */
+    if (ret > 0) i++;
+    if (offset) offset[i] = ctx->ninsns;
+    if (ret < 0) return ret;
+  }
+  return 0;
+}
+
 void bpf_int_jit_compile(struct bpf_prog *prog, struct rv_jit_context *ctx) {
   // struct rv_jit_context ctx;
   ctx->prog = prog;
@@ -101,6 +124,9 @@ void bpf_int_jit_compile(struct bpf_prog *prog, struct rv_jit_context *ctx) {
   ctx->ninsns = 0;
   ctx->offset = new int[10000];
   // bpf_jit_build_prologue(ctx);
+  build_body(ctx, false, ctx->offset);
+
+  ctx->ninsns = 0;
   build_body(ctx, false, ctx->offset);
 
   utils::riscv_insn_dump(ctx);
@@ -123,9 +149,11 @@ int main() {
   _bpf_prog.len = idx;
   _bpf_prog.insnsi = ins_vec;
 
-  auto my_logger = spdlog::basic_logger_mt("mylogger", "logs/riscvcode", true);
-  
+  auto my_logger = spdlog::basic_logger_mt("mylogger", "../resource/bytecode/"+ binTrans::prog_name + ".riscv", true);
+
   spdlog::set_default_logger(my_logger);
+  // spdlog::flush_on(spdlog::level::info);
+  my_logger->flush_on(spdlog::level::info);
   my_logger->set_pattern("%v");
 
   bpf_int_jit_compile(&_bpf_prog, &ctx);

@@ -1,5 +1,5 @@
 
-xdp1_kern.o:	file format ELF64-BPF
+./xdp1_kern.o:	file format ELF64-BPF
 
 
 Disassembly of section xdp1:

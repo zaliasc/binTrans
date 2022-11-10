@@ -1,5 +1,6 @@
 #include "binTrans.h"
 
+#include "bpf.h"
 #include "log.h"
 #include <spdlog/common.h>
 #include <spdlog/spdlog.h>
@@ -78,7 +79,7 @@ void riscv_insn_dump(struct rv_jit_context *ctx) {
   }
 }
 
-}  // namespace utils
+} // namespace utils
 
 // get offset at first traverse, prepared for jump inst.
 static int build_offset(struct rv_jit_context *ctx, bool extra_pass,
@@ -92,10 +93,33 @@ static int build_offset(struct rv_jit_context *ctx, bool extra_pass,
 
     ret = bpf_jit_emit_insn(insn, ctx, extra_pass);
     /* BPF_LD | BPF_IMM | BPF_DW: skip the next instruction. */
-    if (ret > 0) i++;
-    if (offset) offset[i] = ctx->ninsns;
-    if (ret < 0) return ret;
+    if (ret > 0)
+      i++;
+    if (offset)
+      offset[i] = ctx->ninsns;
+    if (ret < 0)
+      return ret;
   }
+  return 0;
+}
+
+enum CUSTOM_CMD { ACC1 = 4, ACC2 = 5};
+
+u32 helper_func_addr[200] = {[BPF_MAP_CREATE] = 0,
+                             [BPF_MAP_LOOKUP_ELEM] = 0x1111,
+                             [BPF_MAP_UPDATE_ELEM] = 0x2222,
+                             [BPF_MAP_DELETE_ELEM] = 0x3333,
+                             [ACC1] = 0x4444,
+                             [ACC2] = 0x5555,};
+
+int bpf_jit_get_func_addr(const struct bpf_prog *prog,
+                          const struct bpf_insn *insn, bool extra_pass,
+                          u64 *func_addr, bool *func_addr_fixed) {
+  s16 off = insn->off;
+  s32 imm = insn->imm;
+  u32 addr = helper_func_addr[imm];
+
+  *func_addr = (unsigned long)addr;
   return 0;
 }
 
@@ -108,11 +132,14 @@ static int build_body(struct rv_jit_context *ctx, bool extra_pass,
     const struct bpf_insn *insn = &prog->insnsi[i];
     int ret;
 
-     ret = bpf_jit_emit_insn(insn, ctx, extra_pass);
+    ret = bpf_jit_emit_insn(insn, ctx, extra_pass);
     /* BPF_LD | BPF_IMM | BPF_DW: skip the next instruction. */
-    if (ret > 0) i++;
-    if (offset) offset[i] = ctx->ninsns;
-    if (ret < 0) return ret;
+    if (ret > 0)
+      i++;
+    if (offset)
+      offset[i] = ctx->ninsns;
+    if (ret < 0)
+      return ret;
   }
   return 0;
 }
@@ -124,8 +151,7 @@ void bpf_int_jit_compile(struct bpf_prog *prog, struct rv_jit_context *ctx) {
   ctx->ninsns = 0;
   ctx->offset = new int[10000];
   // bpf_jit_build_prologue(ctx);
-  build_body(ctx, false, ctx->offset);
-
+  build_offset(ctx, false, ctx->offset);
   ctx->ninsns = 0;
   build_body(ctx, false, ctx->offset);
 
@@ -141,7 +167,8 @@ int main() {
 
   struct bpf_insn *ins_vec = new bpf_insn[idx];
 
-  for (int i = 0; i < idx; i++) ins_vec[i] = utils::StringToInsn(v1[i]);
+  for (int i = 0; i < idx; i++)
+    ins_vec[i] = utils::StringToInsn(v1[i]);
 
   struct bpf_prog _bpf_prog;
   struct rv_jit_context ctx;
@@ -149,11 +176,13 @@ int main() {
   _bpf_prog.len = idx;
   _bpf_prog.insnsi = ins_vec;
 
-  auto my_logger = spdlog::basic_logger_mt("mylogger", "../resource/bytecode/"+ binTrans::prog_name + ".riscv", true);
+  auto my_logger = spdlog::basic_logger_mt(
+      "mylogger", "../resource/bytecode/" + binTrans::prog_name + ".riscv",
+      true);
 
   spdlog::set_default_logger(my_logger);
   // spdlog::flush_on(spdlog::level::info);
-  my_logger->flush_on(spdlog::level::info);
+  // my_logger->flush_on(spdlog::level::info);
   my_logger->set_pattern("%v");
 
   bpf_int_jit_compile(&_bpf_prog, &ctx);

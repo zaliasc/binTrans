@@ -9,6 +9,7 @@
  * Arg1, Arg2, Arg3, etc are used as argument mappings of function
  * calls in BPF_CALL instruction.
  */
+#include "type.h"
 #define BPF_REG_ARG1 BPF_REG_1
 #define BPF_REG_ARG2 BPF_REG_2
 #define BPF_REG_ARG3 BPF_REG_3
@@ -54,9 +55,13 @@
 
 #define BPF_IMAGE_ALIGNMENT 8
 
-struct bpf_binary_header {
-  u32 size;
-  u8 image[];
-};
+// struct bpf_binary_header {
+//   u32 size;
+//   u8 image[];
+// };
+
+int bpf_jit_get_func_addr(const struct bpf_prog *prog,
+			  const struct bpf_insn *insn, bool extra_pass,
+			  u64 *func_addr, bool *func_addr_fixed);
 
 #endif

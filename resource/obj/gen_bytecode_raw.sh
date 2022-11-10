@@ -21,6 +21,7 @@ for(( i=0;i<${#target[@]};i++))
 do
 llvm-objdump-10 -S ./${target[i]}_kern.o >> ../bytecode/${target[i]}.bytecode
 readelf -x ${section[i]} ./${target[i]}_kern.o | grep "0x" | awk '{printf "%s%s\n%s%s\n",$2,$3,$4,$5}' | grep -v "\." >> ../bytecode/${target[i]}.raw
+# llvm-objcopy-10 -O binary xdp1_kern.o xdp1.text --only-section xdp1
 done
 
 

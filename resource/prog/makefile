@@ -1,4 +1,4 @@
-XDP_TARGETS = xdp1
+XDP_TARGETS = xdp11
 
 # all: compile asm byte
 
@@ -11,12 +11,10 @@ XDP_TARGETS = xdp1
 # 	clang -target bpf -S -o ${XDP_TARGETS}.s ${XDP_TARGETS}.c
 
 raw_byte:
-	readelf -x xdp1 /home/zzc/project/code/ebpf/binTrans/prog/${XDP_TARGETS}_kern.o | grep "0x" | awk '{printf "%s%s\n%s%s\n",$$2,$$3,$$4,$$5}' | grep -v "\." > bytecode_raw_${XDP_TARGETS}
+	readelf -x xdp1 ./${XDP_TARGETS}_kern.o | grep "0x" | awk '{printf "%s%s\n%s%s\n",$$2,$$3,$$4,$$5}' | grep -v "\." > ${XDP_TARGETS}.raw
 
 byte:
-	llvm-objdump-10 -S ${XDP_TARGETS}_kern.o > bytecode
-	# llvm-objdump-10 -S ${XDP_TARGETS}_1.o > bytecode_1.text
-	# llvm-objdump-10 -d ${XDP_TARGETS}.o > bytecode.text
+	llvm-objdump-10 -S ${XDP_TARGETS}_kern.o > ${XDP_TARGETS}.dump
 
 LINUX_PATH ?= /space1/zzc_data/linux-5.4
 LINUX_TOOLS_PATH = $(LINUX_PATH)/tools
@@ -61,7 +59,9 @@ EXTRA_CFLAGS=-Werror
 
 ###
 
-all: dependencies $(TARGETS) $(KERN_OBJECTS) byte raw_byte
+# all: dependencies $(TARGETS) $(KERN_OBJECTS) byte raw_byte
+all: dependencies $(KERN_OBJECTS) byte raw_byte
+
 
 .PHONY: clean dependencies verify_cmds verify_target_bpf $(CLANG) $(LLC)
 

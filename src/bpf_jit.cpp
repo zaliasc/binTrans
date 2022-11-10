@@ -1113,8 +1113,8 @@ int bpf_jit_emit_insn(const struct bpf_insn *insn, struct rv_jit_context *ctx,
       int ret;
       u64 addr;
       // FIXME fix call addr
-      // ret = bpf_jit_get_func_addr(ctx->prog, insn, extra_pass, &addr,
-      // &fixed); if (ret < 0) return ret;
+      ret = bpf_jit_get_func_addr(ctx->prog, insn, extra_pass, &addr,
+      &fixed); if (ret < 0) return ret;
       emit_call(fixed, addr, ctx);
       break;
     }

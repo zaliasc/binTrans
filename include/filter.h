@@ -61,7 +61,7 @@
 // };
 
 int bpf_jit_get_func_addr(const struct bpf_prog *prog,
-			  const struct bpf_insn *insn, bool extra_pass,
-			  u64 *func_addr, bool *func_addr_fixed);
+                          const struct bpf_insn *insn, bool extra_pass,
+                          u64 *func_addr, bool *func_addr_fixed);
 
 #endif

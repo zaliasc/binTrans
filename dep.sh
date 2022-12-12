@@ -11,6 +11,6 @@
 # cmake .. && mkdir -j
 # cp libfmt.a ${ROOT_dir}/lib/
 
-sudo apt install libfmt-dev libspdlog-dev
+sudo apt install libfmt-dev libspdlog-dev libelf-dev
 
 cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 .

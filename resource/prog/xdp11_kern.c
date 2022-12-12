@@ -8,12 +8,33 @@
 #include <linux/ipv6.h>
 #include "bpf_helpers.h"
 
-struct bpf_map_def SEC("maps") rxcnt = {
-	.type = BPF_MAP_TYPE_PERCPU_ARRAY,
-	.key_size = sizeof(u32),
-	.value_size = sizeof(long),
-	.max_entries = 256,
+struct p {
+	int a;
+	char b;
 };
+
+struct bpf_map_def SEC("maps") rxcnt1 = {
+	.type = BPF_MAP_TYPE_PERCPU_ARRAY,
+	.key_size = sizeof(u16),
+	.value_size = sizeof(u16),
+	.max_entries = 257,
+};
+
+struct bpf_map_def SEC("maps") rxcnt2 = {
+	.type = BPF_MAP_TYPE_PERCPU_ARRAY,
+	.key_size = sizeof(struct p),
+	.value_size = sizeof(u32),
+	.max_entries = 508,
+};
+
+struct bpf_map_def SEC("maps") rxcnt3 = {
+	.type = BPF_MAP_TYPE_PERCPU_ARRAY,
+	.key_size = sizeof(u64),
+	.value_size = sizeof(u64),
+	.max_entries = 1021,
+};
+
+
 
 static int parse_ipv4(void *data, u64 nh_off, void *data_end)
 {
@@ -77,7 +98,7 @@ int xdp_prog1(struct xdp_md *ctx)
 	else
 		ipproto = 0;
 
-	value = bpf_map_lookup_elem(&rxcnt, &ipproto);
+	value = bpf_map_lookup_elem(&rxcnt1, &ipproto);
 	if (value)
 		*value += 1;
 

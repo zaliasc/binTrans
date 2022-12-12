@@ -93,7 +93,7 @@ Disassembly of section xdp1:
 0000000000000190 LBB0_18:
       50:	bf a2 00 00 00 00 00 00	r2 = r10
       51:	07 02 00 00 fc ff ff ff	r2 += -4
-; 	value = bpf_map_lookup_elem(&rxcnt, &ipproto);
+; 	value = bpf_map_lookup_elem(&rxcnt1, &ipproto);
       52:	18 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00	r1 = 0 ll
       54:	85 00 00 00 01 00 00 00	call 1
 ; 	if (value)

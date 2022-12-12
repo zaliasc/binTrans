@@ -7,7 +7,7 @@ SET(CMAKE_CXX_COMPILER "g++")
 set( CMAKE_BUILD_TYPE Debug )
 
 # 设置编译选项
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O0 -g -ggdb" )
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O0 -g -ggdb -lelf" )
 
 if(NOT TARGET spdlog)
     # Stand-alone build
@@ -23,8 +23,11 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 aux_source_directory(${PROJECT_SOURCE_DIR}/src DIR_SOURCE)
 
-add_executable(binTrans ${DIR_SOURCE})
+# add_executable(binTrans ${DIR_SOURCE})
 
-target_link_libraries(binTrans spdlog::spdlog fmt::fmt)
+# target_link_libraries(binTrans spdlog::spdlog fmt::fmt)
+
+add_executable(map_fix ${PROJECT_SOURCE_DIR}/src/map_fix.cpp)
+TARGET_LINK_LIBRARIES(map_fix elf)
 
 

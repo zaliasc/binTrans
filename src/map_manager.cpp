@@ -1,77 +1,10 @@
-#include "type.h"
-#include <fcntl.h>
-#include <gelf.h>
-#include <libelf.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <vector>
-#include <map>
-#include <string>
-
+#include "map_manager.h"
+#include <cassert>
 // const char *symtype[] = {"STT_NOTYPE", "STT_OBJECT", "STT_FUNC", "STT_SECTION", "STT_FILE", "STT_COMMON", "STT_TLS"};
 // const char *symbind[] = {"STB_LOCAL", "STB_GLOBAL", "STB_WEAK"};
 // const char *symvisual[] = {"STV_DEFAULT", "STV_INTERNAL", "STV_HIDDEN", "STV_PROTECTED"};
 
-std::string xdp_section = "xdp1";
-std::string rel_section = ".rel" + xdp_section;
-
-// elf-symbol-info ----------------------
-
-std::map<u32, std::string>
-    symbol_info_global;
-
-// elf-map-info ----------------------
-#define maps_entry_len 7
-#define maps_key_size_offset 1
-#define maps_value_size_offset 2
-#define maps_max_entries_offset 3
-
-typedef struct bpf_map {
-    u32 type;
-    u32 key_size;
-    u32 value_size;
-    u32 max_entry;
-} bpf_map;
-
-std::vector<bpf_map> map_info_global;
-
-// format
-// type | key_size | value_size| max_entries
-// 06000000 02000000 02000000 01010000 00000000 00000000 00000000  ................
-// 06000000 08000000 04000000 fc010000 00000000 00000000 00000000
-// 06000000 08000000 08000000 fd030000 00000000 00000000 00000000
-
-#define rel_entry_len 7
-#define rel_key_size_offset 1
-#define rel_value_size_offset 2
-#define rel_max_entries_offset 3
-
-typedef struct relo_entry {
-    u64 offset;
-    u32 type;
-    u32 index;
-    std::string map_name;
-} relo_entry;
-
-std::vector<relo_entry> relo_info_global;
-// ----------------------
-
-// 0x00000000 08000000 00000000 01000000 44030000 ............ D...
-// 0x00000010 30000000 00000000 01000000 44030000 0...........D...
-// 0x00000020 58000000 00000000 01000000 44030000 X...........D...
-// 0x00000030 80000000 00000000 01000000 44030000 ............ D...
-
-// 每一个重定位的 entry 的组成：
-//     64 | 32 | 32
-//     offset | type | index
-// - 低 64 位是 offset，用于关联当前 entry 对应代码 section 中具体的指令。(addr = **** / 8)
-//   代码 section 指令位置到其 section 起始地址，偏移的长度 offset 等于这个 offset；
-// - 高 64 位是 Info，其中的低 32 位对应重定位 symbol 的 type(0x01 map)，高 32 位对应重定位 symbol 的index（在 symbol 表的 id）。
-
-static int
-get_sec(Elf *elf, int i, GElf_Ehdr *ehdr, char **shname, GElf_Shdr *shdr, Elf_Data **data) {
+int map_manager::get_sec(Elf *elf, int i, GElf_Ehdr *ehdr, char **shname, GElf_Shdr *shdr, Elf_Data **data) {
     Elf_Scn *scn;
     scn = elf_getscn(elf, i); //从elf描述符获取按照节索引获取节接口
     if (!scn)
@@ -88,7 +21,8 @@ get_sec(Elf *elf, int i, GElf_Ehdr *ehdr, char **shname, GElf_Shdr *shdr, Elf_Da
     return 0;
 }
 
-int parse_file(const char *path) {
+int map_manager::parse_file(const std::string filePath) {
+    const char *path = filePath.c_str();
     Elf *elf;
     int fd;
     GElf_Ehdr ehdr;
@@ -122,11 +56,11 @@ int parse_file(const char *path) {
             int maps_entry_num = data->d_size / (maps_entry_len * sizeof(u32));
 
             for (int i = 0; i < maps_entry_num; i++) {
-                map_info_global.push_back(bpf_map{
+                _map_parse_info.push_back(bpf_map{
                     .type = cusor[0],
                     .key_size = cusor[maps_key_size_offset],
                     .value_size = cusor[maps_value_size_offset],
-                    .max_entry = cusor[rel_max_entries_offset]});
+                    .max_entry = cusor[maps_max_entries_offset]});
                 cusor += maps_entry_len;
             }
             break;
@@ -165,7 +99,7 @@ int parse_file(const char *path) {
                 if (*s != '\0') {
                     char buf[128];
                     sprintf(buf, "%s", s);
-                    symbol_info_global[i] = buf;
+                    _symbol_info[i] = buf;
                 }
                 cusor += shdr.sh_entsize;
             }
@@ -178,7 +112,7 @@ int parse_file(const char *path) {
         if (get_sec(elf, i, &ehdr, &shname, &shdr, &data))
             continue;
 
-        if (strcmp(shname, rel_section.c_str()) == 0) {
+        if (strcmp(shname, _rel_section.c_str()) == 0) {
             u8 *cusor = (u8 *)data->d_buf;
             int relo_entry_num = shdr.sh_size / shdr.sh_entsize;
 
@@ -189,10 +123,10 @@ int parse_file(const char *path) {
                 memcpy(&tmprelo.index, cusor + 12, 4);
                 tmprelo.offset /= 8;
                 if (tmprelo.type == 0x01) {
-                    tmprelo.map_name = symbol_info_global[tmprelo.index];
-                    // printf("%llu: %s\n", tmprelo.offset, symbol_info_global[tmprelo.index].c_str());
+                    tmprelo.map_name = _symbol_info[tmprelo.index];
+                    // printf("%llu: %s\n", tmprelo.offset, _symbol_info[tmprelo.index].c_str());
                 }
-                relo_info_global.push_back(tmprelo);
+                _relo_info.push_back(tmprelo);
                 cusor += shdr.sh_entsize;
             }
             break;
@@ -218,12 +152,36 @@ int parse_file(const char *path) {
     // }
 }
 
-// Map的分布是按顺序的吗？
-void alloc_map() {
+void map_manager::map_addr_alloc() {
+    assert(!_map_parse_info.empty());
 
+    int index = 0;
+
+    for (auto &it: _map_parse_info) {
+        
+    }
 }
 
-int main() {
-    parse_file("/space1/zzc_data/ebpf/bintrans/resource/prog/xdp11_kern.o");
-    return 0;
+u_int32_t map_manager::map_addr_get(const std::string &map_name) {
+    u_int32_t func_addr;
+
+    return addr_map_cnt1;
 }
+
+void map_manager::map_fix(struct bpf_prog &_bpf_prog) {
+    int len = _bpf_prog.len;
+
+    for (auto &relo_e : _relo_info) {
+        // if (relo_e.type == 1) {
+        auto offset = relo_e.offset;
+        std::string map_name = relo_e.map_name;
+        u_int32_t map_addr_fix = map_addr_get(map_name);
+        _bpf_prog.insnsi[offset].imm = map_addr_fix;
+    }
+}
+
+// int main() {
+//     map_manager m;
+//     m.parse_file("/home/zzc/project/bintrans/resource/prog_clang/xdp11_kern_clang.o");
+//     return 0;
+// }

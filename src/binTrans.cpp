@@ -2,6 +2,9 @@
 
 #include "bpf.h"
 #include "log.h"
+
+#include "map_manager.h"
+
 #include <spdlog/common.h>
 #include <spdlog/spdlog.h>
 extern "C" {
@@ -179,13 +182,19 @@ int main() {
     _bpf_prog.insnsi = ins_vec;
 
     auto my_logger = spdlog::basic_logger_mt(
-        "mylogger", "../resource/bytecode/" + binTrans::prog_name + ".riscv",
+        "mylogger", "../resource/prog_clang/" + binTrans::prog_name + ".riscv",
         true);
 
     spdlog::set_default_logger(my_logger);
     // spdlog::flush_on(spdlog::level::info);
     // my_logger->flush_on(spdlog::level::info);
     my_logger->set_pattern("%v");
+
+    map_manager m;
+
+    m.parse_file(binTrans::obj_path);
+
+    m.map_fix(_bpf_prog);
 
     bpf_int_jit_compile(&_bpf_prog, &ctx);
 

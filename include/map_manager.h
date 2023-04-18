@@ -33,11 +33,13 @@ typedef struct relo_entry {
     std::string map_name;
 } relo_entry;
 
-typedef struct map_alloc_info {
+typedef struct map_alloc_info_entry {
     u32 start_addr;
     u32 end_addr;
+    u32 key_size;
+    u32 value_size;
     u32 entries;
-} map_alloc_info;
+} map_alloc_info_entry;
 
 class map_manager {
 public:
@@ -54,7 +56,6 @@ public:
     u_int32_t map_addr_get(const std::string &map_name);
     void map_fix(struct bpf_prog &_bpf_prog);
 
-
 private:
     const std::string _xdp_section = "xdp11";
     const std::string _rel_section = ".rel" + _xdp_section;
@@ -65,7 +66,12 @@ private:
 
     std::vector<relo_entry> _relo_info;
 
-    std::map<std::string, map_alloc_info> _map_alloc_info;
+    std::map<std::string, map_alloc_info_entry> _map_alloc_info;
+
+    int _map_section_NDX = 0;
+    std::vector<std::string> _map_name_queue;
+
+    u_int32_t base_addr = 0x10000000;
 
     u_int32_t addr_map_cnt1 = 0x1234;
 

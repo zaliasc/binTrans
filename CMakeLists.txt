@@ -30,6 +30,7 @@ set(binTrans_SOURCE
         src/bpf_jit.cpp
         src/riscv-disas.c
         src/map_manager.cpp
+        src/murmur3.c
     )
 
 add_executable(binTrans ${binTrans_SOURCE})

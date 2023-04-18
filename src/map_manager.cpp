@@ -1,4 +1,5 @@
 #include "map_manager.h"
+#include "murmur3.h"
 #include <cassert>
 // const char *symtype[] = {"STT_NOTYPE", "STT_OBJECT", "STT_FUNC", "STT_SECTION", "STT_FILE", "STT_COMMON", "STT_TLS"};
 // const char *symbind[] = {"STB_LOCAL", "STB_GLOBAL", "STB_WEAK"};
@@ -52,6 +53,8 @@ int map_manager::parse_file(const std::string filePath) {
             continue;
 
         if (strcmp(shname, "maps") == 0) {
+            _map_section_NDX = i;
+
             u32 *cusor = (u32 *)data->d_buf;
             int maps_entry_num = data->d_size / (maps_entry_len * sizeof(u32));
 
@@ -95,11 +98,16 @@ int map_manager::parse_file(const std::string filePath) {
                 memcpy(&tmpsym.st_shndx, cusor + 6, 2);
                 memcpy(&tmpsym.st_value, cusor + 8, 8);
                 memcpy(&tmpsym.st_size, cusor + 16, 8);
+
                 char *s = (char *)data_strtab->d_buf + tmpsym.st_name;
                 if (*s != '\0') {
                     char buf[128];
                     sprintf(buf, "%s", s);
                     _symbol_info[i] = buf;
+
+                    if (tmpsym.st_shndx == _map_section_NDX) {
+                        _map_name_queue.push_back(buf);
+                    }
                 }
                 cusor += shdr.sh_entsize;
             }
@@ -156,20 +164,38 @@ void map_manager::map_addr_alloc() {
     assert(!_map_parse_info.empty());
 
     int index = 0;
+    u_int32_t next_addr = base_addr;
 
-    for (auto &it: _map_parse_info) {
-        
+    for (auto &it : _map_parse_info) {
+        assert(index < _map_name_queue.size());
+        std::string map_name = _map_name_queue[index++];
+        _map_alloc_info[map_name].key_size = it.key_size;
+        _map_alloc_info[map_name].value_size = it.value_size;
+        _map_alloc_info[map_name].entries = it.max_entry;
+        _map_alloc_info[map_name].start_addr = next_addr;
+        next_addr += it.key_size * it.max_entry;
     }
 }
 
 u_int32_t map_manager::map_addr_get(const std::string &map_name) {
+    map_alloc_info_entry &_info = _map_alloc_info[map_name];
+    
     u_int32_t func_addr;
 
-    return addr_map_cnt1;
+    // uint32_t hash;
+    // uint32_t seed = 42;
+
+    // std::string key = map_name;;
+    // MurmurHash3_x86_32(key.c_str(), key.size(), seed, &hash);
+
+    // uint32_t offset = hash % _info.entries;
+    return _info.start_addr;
 }
 
 void map_manager::map_fix(struct bpf_prog &_bpf_prog) {
     int len = _bpf_prog.len;
+
+    map_addr_alloc();
 
     for (auto &relo_e : _relo_info) {
         // if (relo_e.type == 1) {

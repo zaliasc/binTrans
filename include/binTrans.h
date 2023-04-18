@@ -31,7 +31,7 @@ namespace binTrans {
 const std::string prog_name = "xdp11";
 const std::string ebpf_resource_path = "/home/zzc/project/bintrans/resource/prog_clang/";
 const std::string bytecode_path = ebpf_resource_path + prog_name + ".raw";
-const std::string obj_path = ebpf_resource_path + prog_name + "_kern_clang.o";
+const std::string obj_path = ebpf_resource_path + prog_name + ".o";
 // const std::string prog_path = ebpf_resource_path + prog_name ;
 
 } // namespace binTrans

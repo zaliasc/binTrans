@@ -1,0 +1,26 @@
+
+xdp_filter_kern.o:	file format ELF64-BPF
+
+
+Disassembly of section xdp_filter:
+
+0000000000000000 filter:
+; int filter(struct xdp_md *ctx) {
+       0:	b7 00 00 00 01 00 00 00	r0 = 1
+;     void *data_end = (void *)(long)ctx->data_end;
+       1:	61 12 04 00 00 00 00 00	r2 = *(u32 *)(r1 + 4)
+;     void *data = (void *)(long)ctx->data;
+       2:	61 11 00 00 00 00 00 00	r1 = *(u32 *)(r1 + 0)
+;     if (data + ipsize > data_end) {
+       3:	bf 13 00 00 00 00 00 00	r3 = r1
+       4:	07 03 00 00 22 00 00 00	r3 += 34
+       5:	2d 23 04 00 00 00 00 00	if r3 > r2 goto +4 <LBB0_3>
+;     if (ip->protocol == IPPROTO_TCP) {
+       6:	71 11 17 00 00 00 00 00	r1 = *(u8 *)(r1 + 23)
+       7:	b7 00 00 00 01 00 00 00	r0 = 1
+       8:	15 01 01 00 06 00 00 00	if r1 == 6 goto +1 <LBB0_3>
+       9:	b7 00 00 00 02 00 00 00	r0 = 2
+
+0000000000000050 LBB0_3:
+; }
+      10:	95 00 00 00 00 00 00 00	exit

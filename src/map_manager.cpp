@@ -142,33 +142,18 @@ int map_manager::parse_file(const std::string filePath) {
     }
 
     return 0;
-    // for (int i = 1; i < ehdr.e_shnum; i++) {
-    //     if (get_sec(elf, i, &ehdr, &shname, &shdr, &data))
-    //         continue;
-    //     printf("section %d:%s data %p size %zd link %d flags %d type %d\n", i, shname, data->d_buf, data->d_size, shdr.sh_link, (int)shdr.sh_flags, (int)shdr.sh_type);
-    //     if (strcmp(shname, ".text") == 0) {
-    //         printf(".text data:\n");
-    //         unsigned char *p = (unsigned char *)data->d_buf;
-    //         for (int j = 0; j < data->d_size; j++) {
-    //             if (j % 8 == 0) {
-    //                 printf("\n");
-    //             }
-    //             printf("%4x", *p++);
-    //         }
-    //         printf("\n");
-    //     }
-    // }
 }
 
 void map_manager::map_addr_alloc() {
-    assert(!_map_parse_info.empty());
+    // assert(!_map_parse_info.empty());
 
     int index = 0;
     u_int32_t next_addr = base_addr;
 
     for (auto &it : _map_parse_info) {
         assert(index < _map_name_queue.size());
-        std::string map_name = _map_name_queue[index++];
+        std::string map_name = _map_name_queue[index];
+        _map_alloc_info[map_name].fd = index ++ ;
         _map_alloc_info[map_name].key_size = it.key_size;
         _map_alloc_info[map_name].value_size = it.value_size;
         _map_alloc_info[map_name].entries = it.max_entry;
@@ -182,13 +167,6 @@ u_int32_t map_manager::map_addr_get(const std::string &map_name) {
     
     u_int32_t func_addr;
 
-    // uint32_t hash;
-    // uint32_t seed = 42;
-
-    // std::string key = map_name;;
-    // MurmurHash3_x86_32(key.c_str(), key.size(), seed, &hash);
-
-    // uint32_t offset = hash % _info.entries;
     return _info.start_addr;
 }
 

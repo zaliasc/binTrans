@@ -233,6 +233,9 @@ static void emit_jump_and_link(u8 rd, s32 rvoff, bool force_jalr,
     return;
   }
 
+  // FIX_BUG
+  // rvoff += ctx->ninsns;
+
   upper = (rvoff + (1 << 11)) >> 12;
   lower = rvoff & 0xfff;
   emit(rv_auipc(RV_REG_T1, upper), ctx);

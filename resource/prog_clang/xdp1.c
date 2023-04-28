@@ -5,7 +5,7 @@
 
 #define SEC(NAME) __attribute__((section(NAME), used))
 
-SEC("dropper_main")
+SEC("prog")
 int dropper(struct xdp_md *ctx) {
   int nh_off = 0;
 

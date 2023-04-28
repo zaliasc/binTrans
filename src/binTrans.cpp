@@ -55,9 +55,14 @@ struct bpf_insn StringToInsn(const std::string &insn_string) {
 
 void dissassemble(uint64_t pc, char *buf, int buflen, u32 inst) {
     static int offset = 0;
+
     disasm_inst(buf, buflen, rv32, pc + offset, inst);
-    // INSN(buf);
+#ifdef DEBUG
     INSN_ADDR(pc + offset, buf);
+#else
+    INSN_DISASSEMBLY(buf);
+#endif
+
     offset += 4;
     // offset += 1;
 }
@@ -71,8 +76,9 @@ void riscv_insn_dump(struct rv_jit_context *ctx) {
     int insn_index = 0;
     for (int i = 0; i < prog->len; i++) {
         int t = ctx->offset[i] / 2;
+#ifdef DEBUG
         LOG("code " + to_string(i));
-
+#endif
         while (insn_index < t) {
             u32 inst = ((u32)ctx->insns[2 * insn_index + 1] << 16) + ((u32)ctx->insns[2 * insn_index]);
             dissassemble(0, buf, sizeof(buf), inst);

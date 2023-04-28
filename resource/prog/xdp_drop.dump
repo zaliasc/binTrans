@@ -1,0 +1,10 @@
+
+xdp_drop_kern.o:	file format ELF64-BPF
+
+
+Disassembly of section xdp_drop:
+
+0000000000000000 xdp_drop_the_world:
+;     return XDP_DROP;
+       0:	b7 00 00 00 01 00 00 00	r0 = 1
+       1:	95 00 00 00 00 00 00 00	exit

@@ -34,6 +34,7 @@ typedef struct relo_entry {
 } relo_entry;
 
 typedef struct map_alloc_info_entry {
+    int fd;
     u32 start_addr;
     u32 end_addr;
     u32 key_size;

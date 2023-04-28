@@ -1,0 +1,35 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+MY_MEMORY        0x0000000000030000 0x0000000000020000 xr
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+                0x0000000000000000                . = 0x0
+
+.text           0x0000000000000000       0x4a
+ *(.text)
+ .text          0x0000000000000000       0x4a system.o
+
+.mysection      0x0000000000030000       0x12
+                0x0000000000030000                . = ALIGN (0x4)
+                0x0000000000030000                __mysection_start__ = .
+ *(.mysection*)
+ .mysection     0x0000000000030000       0x12 system.o
+                0x0000000000030012                __mysection_end__ = .
+                0x0000000000000001                ASSERT ((LENGTH (MY_MEMORY) >= (__mysection_end__ - __mysection_start__)), MY_MEMORY memory overflowed !)
+LOAD system.o
+OUTPUT(system.elf elf64-littleriscv)
+
+.data           0x0000000000030012        0x0
+ .data          0x0000000000030012        0x0 system.o
+
+.bss            0x0000000000030012        0x0
+ .bss           0x0000000000030012        0x0 system.o
+
+.riscv.attributes
+                0x0000000000000000       0x33
+ .riscv.attributes
+                0x0000000000000000       0x33 system.o

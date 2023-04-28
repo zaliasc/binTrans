@@ -1,4 +1,4 @@
-XDP_TARGETS = xdp11
+XDP_TARGETS ?= xdp_filter
 
 # all: compile asm byte
 
@@ -11,12 +11,14 @@ XDP_TARGETS = xdp11
 # 	clang -target bpf -S -o ${XDP_TARGETS}.s ${XDP_TARGETS}.c
 
 raw_byte:
-	readelf -x xdp1 ./${XDP_TARGETS}_kern.o | grep "0x" | awk '{printf "%s%s\n%s%s\n",$$2,$$3,$$4,$$5}' | grep -v "\." > ${XDP_TARGETS}.raw
+	readelf -x ${XDP_TARGETS} ./${XDP_TARGETS}_kern.o | grep "0x" | awk '{printf "%s%s\n%s%s\n",$$2,$$3,$$4,$$5}' | grep -v "\." > ${XDP_TARGETS}.raw
 
 byte:
 	llvm-objdump-10 -S ${XDP_TARGETS}_kern.o > ${XDP_TARGETS}.dump
+	rm *.ll
 
-LINUX_PATH ?= /space1/zzc_data/linux-5.4
+# LINUX_PATH ?= /space1/zzc_data/linux-5.4
+LINUX_PATH ?= /opt/linux-stable
 LINUX_TOOLS_PATH = $(LINUX_PATH)/tools
 LINUX_LIB_PATH = $(LINUX_TOOLS_PATH)/lib
 LIBBPF_PATH = $(LINUX_LIB_PATH)/bpf

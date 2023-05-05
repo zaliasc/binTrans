@@ -9,27 +9,29 @@ Linker script and memory map
 
                 0x0000000000000000                . = 0x0
 
-.text           0x0000000000000000       0x4a
+.text           0x0000000000000000       0x40
  *(.text)
- .text          0x0000000000000000       0x4a system.o
+ .text          0x0000000000000000       0x40 1.o
 
-.mysection      0x0000000000030000       0x12
-                0x0000000000030000                . = ALIGN (0x4)
-                0x0000000000030000                __mysection_start__ = .
+.xdpsection     0x0000000000030000      0x134
+ .xdpsection    0x0000000000030000      0x134 1.o
+
+.data           0x0000000000000040        0x0
+ .data          0x0000000000000040        0x0 1.o
+
+.bss            0x0000000000000040        0x0
+ .bss           0x0000000000000040        0x0 1.o
+
+.mysection      0x0000000000030134        0x0
+                0x0000000000030134                . = ALIGN (0x4)
+                0x0000000000030134                __mysection_start__ = .
  *(.mysection*)
- .mysection     0x0000000000030000       0x12 system.o
-                0x0000000000030012                __mysection_end__ = .
+                0x0000000000030134                __mysection_end__ = .
                 0x0000000000000001                ASSERT ((LENGTH (MY_MEMORY) >= (__mysection_end__ - __mysection_start__)), MY_MEMORY memory overflowed !)
-LOAD system.o
-OUTPUT(system.elf elf64-littleriscv)
-
-.data           0x0000000000030012        0x0
- .data          0x0000000000030012        0x0 system.o
-
-.bss            0x0000000000030012        0x0
- .bss           0x0000000000030012        0x0 system.o
+LOAD 1.o
+OUTPUT(1.elf elf64-littleriscv)
 
 .riscv.attributes
                 0x0000000000000000       0x33
  .riscv.attributes
-                0x0000000000000000       0x33 system.o
+                0x0000000000000000       0x33 1.o

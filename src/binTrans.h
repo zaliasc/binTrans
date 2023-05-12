@@ -29,7 +29,7 @@ void riscv_insn_dump(struct rv_jit_context *ctx);
 
 namespace binTrans {
 const std::string prog_name = "ping_drop";
-const std::string ebpf_resource_path = "/home/zzc/project/bintrans/resource/prog_clang/";
+const std::string ebpf_resource_path = "/home/zzc/binTrans/resource/prog_clang/";
 const std::string bytecode_path = ebpf_resource_path + prog_name + ".raw";
 const std::string obj_path = ebpf_resource_path + prog_name + ".o";
 // const std::string prog_path = ebpf_resource_path + prog_name ;

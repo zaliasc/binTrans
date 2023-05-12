@@ -21,15 +21,15 @@ if(NOT TARGET fmt)
     find_package(fmt REQUIRED)
 endif()
 
-include_directories(${PROJECT_SOURCE_DIR}/include)
+# include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # aux_source_directory(${PROJECT_SOURCE_DIR}/src DIR_SOURCE)
 
 set(binTrans_SOURCE
-        src/binTrans.cpp
-        src/bpf_jit.cpp
+        src/binTrans.cc
+        src/bpf_jit.cc
         src/riscv-disas.c
-        src/map_manager.cpp
+        src/map_manager.cc
         src/murmur3.c
     )
 
@@ -38,7 +38,7 @@ add_executable(binTrans ${binTrans_SOURCE})
 target_link_libraries(binTrans spdlog::spdlog fmt::fmt elf)
 
 # set(map_manager_SOURCE
-#         src/map_manager.cpp
+#         src/map_manager.cc
 #     )
 
 # add_executable(map_manager ${map_manager_SOURCE})

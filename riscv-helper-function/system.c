@@ -34,12 +34,12 @@ struct iphdr {
     __u32  daddr;
 }__attribute__((packed));
 
- struct udphdr {
+struct udphdr {
     __u16   source;
     __u16   dest;
     __u16   len;
     __u16   check;
- };
+};
 
 struct xdp_md {
 	__u32 data;

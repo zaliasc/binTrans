@@ -233,8 +233,8 @@ static void emit_jump_and_link(u8 rd, s32 rvoff, bool force_jalr,
     return;
   }
 
-  // FIX_BUG
-  // rvoff += ctx->ninsns;
+  // NOTE : FIX BUG: change to absolute addr --- error, no need auipc is not lui
+  // rvoff += (ctx->ninsns << 1);
 
   upper = (rvoff + (1 << 11)) >> 12;
   lower = rvoff & 0xfff;

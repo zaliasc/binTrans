@@ -4,7 +4,7 @@
 
 #define SPDLOG_NAME "mylogger"
 
-#define DEBUG
+// #define DEBUG
 
 #define LOG(string) spdlog::info(fmt::format("{0}", string))
 
